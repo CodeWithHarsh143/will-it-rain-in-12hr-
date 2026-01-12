@@ -1,0 +1,36 @@
+import os
+import requests
+from twilio.rest import Client
+MY_API_CALL =  os.environ.get("OWM_API_KEY")
+MY_LAT= 30.795687
+MY_LNG = 76.906265
+
+parameters = {
+    
+    "lat":MY_LAT,
+    "lon":MY_LNG,
+    "appid":MY_API_CALL,
+    "cnt":4,
+}
+# message form sms
+account_sid = os.environ.get("OWM_ACCOUNT_SID")
+auth_token = os.environ.get("OWM_AUTH_TOKEN")
+response = requests.get(url=f"https://api.openweathermap.org/data/2.5/forecast",params=parameters)
+response.raise_for_status()
+
+weather_data = response.json()
+will_rain = False
+for hour_data in weather_data["list"]:
+    if int(hour_data["weather"][0]["id"])<700:
+        will_rain = True
+        break
+        
+if(will_rain):
+    client = Client(account_sid,auth_token)
+    message = client.messages\
+                .create(
+                    body="Today might be rain. so be ready with your ☔",
+                    from_="+17152273318",
+                    to="+919306397280",
+                )
+    print(message.status)
